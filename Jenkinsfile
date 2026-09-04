@@ -1,7 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
@@ -12,7 +17,6 @@ pipeline {
             steps {
                 echo 'Building application...'
                 sh '''
-                    export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
                     docker --version
                 '''
             }
@@ -23,10 +27,10 @@ pipeline {
                 echo 'Running Terraform...'
                 dir('terraform') {
                     sh '''
-                        export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
                         terraform fmt -check
                         terraform init
                         terraform validate
+                        terraform apply -auto-approve
                     '''
                 }
             }
@@ -34,10 +38,10 @@ pipeline {
 
         stage('Docker Compose') {
             steps {
-                echo 'Checking Docker Compose...'
+                echo 'Running Docker Compose...'
                 sh '''
-                    export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
                     docker compose version
+                    docker compose up -d --build
                 '''
             }
         }
