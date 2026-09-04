@@ -1,36 +1,46 @@
-```groovy
 pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
+                echo 'Checking out source code...'
                 checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
-                sh 'docker build -t ad4r5h/flask-app:latest ./app'
+                echo 'Building application...'
+                sh 'docker --version'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Terraform') {
             steps {
-                sh 'docker push ad4r5h/flask-app:latest'
+                echo 'Running Terraform...'
+                dir('terraform') {
+                    sh 'terraform fmt -check'
+                    sh 'terraform init'
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Docker Compose') {
+            steps {
+                echo 'Checking Docker Compose...'
+                sh 'docker compose version'
             }
         }
     }
 
     post {
         success {
-            echo 'Jenkins Pipeline completed successfully!'
+            echo 'Pipeline completed successfully!'
         }
-
         failure {
-            echo 'Jenkins Pipeline failed!'
+            echo 'Pipeline failed!'
         }
     }
 }
-```
